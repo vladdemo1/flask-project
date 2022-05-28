@@ -1,0 +1,32 @@
+version: '3.3'
+
+services:
+  app:
+    container_name: "my_app"
+    command: bash -c "python3 /flask_app/manage.py"
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./flask_app:/flask_app
+    depends_on:
+      - db
+    environment:
+      PYTHONUNBUFFERED: 1
+  db:
+    image: postgres:14.2
+    restart: always
+    environment:
+      PGDATA: /var/lib/postgresql/data
+    env_file:
+      - .env.list
+    volumes:
+      - db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  db:
