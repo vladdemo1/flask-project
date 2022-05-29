@@ -25,7 +25,7 @@ def init_db():
     """
     Func about init database and import main models
     """
-    from app.models import user
+    from app.models import user, genre, director, film, film_genre
     Base.metadata.create_all(bind=engine)
 
 
