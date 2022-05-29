@@ -1,15 +1,20 @@
-import logging
-import os
-from flask import Flask
+"""
+This mod contains main init about app
+"""
 
-# future import api
-# future import db, migration
-# future import logging
+import logging
+from flask import Flask
+from flask_migrate import Migrate
+
 
 app = Flask(__name__)
 
+migration = Migrate(directory='./app/migrations')
+
 console = logging.getLogger('console')
 
-# future import models
+from app.main.database import init_db
+
+init_db()
 
 from . import views
