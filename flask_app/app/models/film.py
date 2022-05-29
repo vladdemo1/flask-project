@@ -7,7 +7,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.main.database import Base
-from film_genre import film_genre
+from app.models.film_genre import film_genre
 
 
 class Film(Base):
