@@ -15,7 +15,7 @@ services:
     depends_on:
       - db
     env_file:
-      - .env.list
+      - .env
     environment:
       PYTHONUNBUFFERED: 1
   db:
@@ -24,7 +24,7 @@ services:
     environment:
       PGDATA: /var/lib/postgresql/data
     env_file:
-      - .env.list
+      - .env
     volumes:
       - db:/var/lib/postgresql/data
     ports:

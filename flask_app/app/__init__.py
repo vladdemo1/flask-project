@@ -1,20 +1,6 @@
 """
-This mod contains main init about app
+Starting init main app and current views
 """
 
-import logging
-from flask import Flask
-from flask_migrate import Migrate
-
-
-app = Flask(__name__)
-
-migration = Migrate(directory='./app/migrations')
-
-console = logging.getLogger('console')
-
-from app.main.database import init_db
-
-init_db()
-
-from . import views
+from app import app
+from app import views
