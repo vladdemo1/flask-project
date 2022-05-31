@@ -13,3 +13,12 @@ rm:
 
 log:
 	$ sudo docker logs my_app -f
+
+clear_network:
+	$ sudo docker network prune
+
+clear_volume:
+	$ sudo docker volume prune
+
+show_images:
+	$ sudo docker images -a

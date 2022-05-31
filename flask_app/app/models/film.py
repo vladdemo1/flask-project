@@ -2,27 +2,28 @@
 This mod contains main class about model Film in database
 """
 
-from sqlalchemy import Column, Integer, String, Date, Text
+from sqlalchemy import Integer, String, Date, Text
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
-from app.main.database import Base
+from app.main.database import db
 from app.models.film_genre import film_genre
+from app.models.base_model import BaseModel
 
 
-class Film(Base):
+class Film(db.Model, BaseModel):
     """
     This is a base film model
     """
     __tablename__ = 'film'
 
-    id = Column(Integer, primary_key=True, nullable=False)
-    date = Column(Date, nullable=False)
-    rating = Column(Integer, nullable=False)
-    poster = Column(String(200), nullable=False)
-    description = Column(Text)
-    director_id = Column(Integer, ForeignKey("director.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    id = db.Column(Integer, primary_key=True, nullable=False)
+    date = db.Column(Date, nullable=False)
+    rating = db.Column(Integer, nullable=False)
+    poster = db.Column(String(200), nullable=False)
+    description = db.Column(Text)
+    director_id = db.Column(Integer, ForeignKey("director.id"), nullable=False)
+    user_id = db.Column(Integer, ForeignKey("user.id"), nullable=False)
     genre_id = relationship("Genre", secondary=film_genre)
 
     def __init__(self, date, rating, poster, description, director_id, user_id, genre_id):

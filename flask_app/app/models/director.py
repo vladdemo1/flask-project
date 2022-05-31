@@ -2,19 +2,20 @@
 This mod contains main class about model Director in database
 """
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Integer, String
 
-from app.main.database import Base
+from app.main.database import db
+from app.models.base_model import BaseModel
 
 
-class Director(Base):
+class Director(db.Model, BaseModel):
     """
     This is a base director model
     """
     __tablename__ = 'director'
 
-    id = Column(Integer, primary_key=True, nullable=False)
-    name = Column(String(50), nullable=False)
+    id = db.Column(Integer, primary_key=True, nullable=False)
+    name = db.Column(String(50), nullable=False)
 
     def __init__(self, name):
         self.name = name

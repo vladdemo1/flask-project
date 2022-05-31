@@ -2,19 +2,20 @@
 This mod contains main class about model Genre in database
 """
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Integer, String
 
-from app.main.database import Base
+from app.main.database import db
+from app.models.base_model import BaseModel
 
 
-class Genre(Base):
+class Genre(db.Model, BaseModel):
     """
     This is a base genre model
     """
     __tablename__ = 'genre'
 
-    id = Column(Integer, primary_key=True, nullable=False)
-    genre = Column(String(50), nullable=False)
+    id = db.Column(Integer, primary_key=True, nullable=False)
+    genre = db.Column(String(50), nullable=False)
 
     def __init__(self, genre):
         self.genre = genre
