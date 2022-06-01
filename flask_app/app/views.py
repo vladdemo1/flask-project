@@ -3,7 +3,7 @@ This mod contains main routes in app
 """
 
 import flask_login
-from flask import redirect, url_for
+from flask import redirect, url_for, request
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import login_user, logout_user, login_required
@@ -12,6 +12,8 @@ from app.app import app
 from app.models.user_login import UserLogin
 from app.models.user import User
 from app.app import users_repository
+
+from app.controllers.route_controller import RouteController
 
 from app.answers.json_answer import JsonAnswer
 
@@ -100,3 +102,24 @@ def logout():
     Log out from flask-login
     """
     logout_user()
+
+
+@app.route("/films", methods=['GET', 'POST'])
+def films():
+    """
+    Show all films and current search by pattern
+    """
+    search_form_name = 'search'
+
+    if request.method == 'POST' and not request.form.get(search_form_name):
+        return redirect('/films')
+
+    if request.method == 'POST':
+        search_pattern = request.form.get(search_form_name)
+        number_page = int(request.form.get('number_page'))
+        films_with_paginate = RouteController().film_paginate(page=number_page, search_pattern=search_pattern,
+                                                              count_film_per_page=10)
+        return JsonAnswer(app, 200, {'Films': f'{films_with_paginate}'}).return_answer
+
+    all_films = RouteController().get_all_films()
+    return JsonAnswer(app, 200, {'Films': f'{all_films}'}).return_answer
