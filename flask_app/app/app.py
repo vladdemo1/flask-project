@@ -10,12 +10,15 @@ from flask_login import LoginManager
 from app.main.database import db, migrate
 from app import config
 from app.models.user_login import UsersRepository
+from app.user.user import user
 
 
 app = Flask(__name__)
 app.secret_key = config.APP_SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config.SQLALCHEMY_TRACK_MODIFICATIONS
+
+app.register_blueprint(user, url_prefix='/films')
 
 console = logging.getLogger('console')
 login_manager = LoginManager()
