@@ -2,28 +2,23 @@
 This mod contains main routes in app
 """
 
-import flask_login
-from flask import redirect, url_for, request
-from sqlalchemy.exc import IntegrityError
+from flask_login import login_required, login_user
+from flask import request, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
-from flask_login import login_user, logout_user, login_required
 
 from app.app import app
-from app.models.user_login import UserLogin
-from app.models.user import User
 from app.app import users_repository
 
 from app.controllers.route_controller import RouteController
 
-from app.answers.json_answer import JsonAnswer
 
-
-@app.route("/ping")
+@app.route("/ping", methods=['POST'])
 def ping():
     """
     Test func about check work app
     """
-    return JsonAnswer(current_app=app, status=200, dict_msg={'msg': 'pong'}).return_answer
+    if request.method == "POST":
+        return jsonify({'msg': 'pong'})
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -31,34 +26,47 @@ def login():
     """
     Login user with flask-login
     """
-    user_name = 'vlad'  # request.form.get('name')
-    user_email = 'me@gmail.com'  # request.form.get('email')
-    user_password = '12345'  # request.form.get('password')
+    if request.method == "POST":
+        data = request.get_json()
+        user_name = data["name"]
+        user_email = data["email"]
+        user_password = data["password"]
 
-    if user_name and user_email and user_password:
+        if not user_name or not user_email or not user_password:
+            return jsonify({'Message': 'User not log in'})
 
-        registered_user = users_repository.get_user(user_name)
-        hash_password = User.find_by_name(user_name).password
+        hash_password = RouteController().get_user_password_hash(user_name=user_name)
+        check_passwords = check_password_hash(hash_password, user_password)
 
-        true_pass = check_password_hash(hash_password, user_password)
+        if not check_passwords:
+            return jsonify({'Message': 'Password is not correct'})
 
-        if registered_user is not None and true_pass:
-            login_user(registered_user)
+        user_id = RouteController().get_id_user(username=user_name)
 
-            return redirect(url_for('protected'))
-        else:
-            return JsonAnswer(app, 403, {'Message': 'Password is not correct'}).return_answer
-    else:
-        return JsonAnswer(app, 401, {'Message': 'User not log in'}).return_answer
+        if user_id is None:
+            return jsonify({'Message': 'User is not exists in database'})
+
+        user_from_database = RouteController().get_user_by_id(user_id)
+
+        user_login = RouteController().get_user_login(name=user_from_database.name,
+                                                      password=user_from_database.password,
+                                                      user_id=users_repository.next_index())
+
+        users_repository.save_user(user_login)
+        login_user(user_login)
+
+        return jsonify({'Message': 'User successfully logged in'})
 
 
-@app.route('/protected')
-@flask_login.login_required
+@app.route('/protected', methods=["POST"])
+@login_required
 def protected():
     """
     Check about login user
     """
-    return JsonAnswer(app, 200, {'Message': f'Logged in as + id:{flask_login.current_user.id}'}).return_answer
+    if request.method == "POST":
+        name_user_login = RouteController().get_name_user_login()
+        return jsonify({'Message': f'Logged in as :{name_user_login}'})
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -66,33 +74,39 @@ def register():
     """
     Register user + add to flask-login
     """
-    user_name = 'vlad'  # request.form.get('name')
-    user_email = 'me@gmail.com'  # request.form.get('email')
-    user_password = '12345'  # request.form.get('password')
-    user_password_too = '12345'  # request.form.get('password_too')
-    q = 5
-    if q == 5:  # request.method == "POST"
-        if not (user_name or user_email or user_password or user_password_too):
-            return JsonAnswer(app, 403, {'Message': 'Input all data'}).return_answer
+    if request.method == "POST":
+        data = request.get_json()
+
+        user_name: str = data["name"]
+        user_email: str = data["email"]
+        user_password: str = data["password"]
+        user_password_too: str = data["password_too"]
+
+        if not user_name:
+            return jsonify({'Message': 'Name not field or invalid user name'})
+
+        if not user_email:
+            return jsonify({'Message': 'Email not field or invalid email'})
+
+        if not user_password or not user_password_too:
+            return jsonify({'Message': 'Password not field'})
 
         if user_password != user_password_too:
-            return JsonAnswer(app, 403, {'Message': 'Passwords are not equal'}).return_answer
+            return jsonify({'Message': 'Passwords are not equal'})
 
         password_hash = generate_password_hash(user_password)
-        try:
-            new_user = User(email=user_email, name=user_name, password=password_hash)
-            new_user.save_to_db()
 
-            user_login = UserLogin(username=user_name, password=password_hash,
-                                   user_id=users_repository.next_index())
-            users_repository.save_user(user_login)
+        status_code, message = RouteController().add_user_to_database(name=user_name,
+                                                                      email=user_email,
+                                                                      password=password_hash)
 
-        except IntegrityError:
-            return JsonAnswer(app, 400, {'Message': 'User is exists'}).return_answer
+        user_login = RouteController().get_user_login(name=user_name,
+                                                      password=password_hash,
+                                                      user_id=users_repository.next_index())
+        users_repository.save_user(user_login)
+        login_user(user_login)
 
-        return JsonAnswer(app, 200, new_user.json()).return_answer
-
-    return JsonAnswer(app, 401, {'Message': 'Go back to register'}).return_answer
+        return jsonify(message)
 
 
 @app.route("/logout", methods=['GET', 'POST'])
@@ -101,7 +115,9 @@ def logout():
     """
     Log out from flask-login
     """
-    logout_user()
+    if request.method == "POST":
+        RouteController().logout_user()
+        return jsonify({'Message': 'Logout completed'})
 
 
 @app.route("/films", methods=['GET', 'POST'])
@@ -109,17 +125,24 @@ def films():
     """
     Show all films and current search by pattern
     """
-    search_form_name = 'search'
-
-    if request.method == 'POST' and not request.form.get(search_form_name):
-        return redirect('/films')
-
     if request.method == 'POST':
-        search_pattern = request.form.get(search_form_name)
-        number_page = int(request.form.get('number_page'))
-        films_with_paginate = RouteController().film_paginate(page=number_page, search_pattern=search_pattern,
-                                                              count_film_per_page=10)
-        return JsonAnswer(app, 200, {'Films': f'{films_with_paginate}'}).return_answer
+        data = request.get_json()
+        search_pattern = data['number_page']
+        number_page = data['number_page']
 
-    all_films = RouteController().get_all_films()
-    return JsonAnswer(app, 200, {'Films': f'{all_films}'}).return_answer
+        if not search_pattern:
+            all_films = RouteController().get_all_films(page_number=number_page)
+            return jsonify({'Films': f'{all_films}'})
+
+        films_with_paginate = RouteController().film_paginate(page=number_page, search_pattern=search_pattern)
+        return jsonify({'Films': f'{films_with_paginate}'})
+
+    first_films = RouteController().get_all_films(page_number=1)
+    return jsonify({'Films': f'{first_films}'})
+
+
+@app.route("/postman", methods=['GET', 'POST'])
+def postman():
+    if request.method == "POST":
+        data = request.get_json()
+        return jsonify({'Your name:': f'{data}'})
