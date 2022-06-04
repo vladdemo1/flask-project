@@ -27,7 +27,7 @@ class Film(db.Model, BaseModel):
     user_id = db.Column(Integer, ForeignKey("user.id"), nullable=False)
     genre_id = relationship("Genre", secondary=film_genre)
 
-    def __init__(self, name, date, rating, poster, description, director_id, user_id, genre_id):
+    def __init__(self, name, date, rating, poster, description, director_id, user_id):
         self.name = name
         self.date = date
         self.rating = rating
@@ -35,7 +35,6 @@ class Film(db.Model, BaseModel):
         self.description = description
         self.director_id = director_id
         self.user_id = user_id
-        self.genre_id = genre_id
 
     def __repr__(self):
         return f"<Film(id={self.id}, name={self.name}, director_id={self.director_id}, " \

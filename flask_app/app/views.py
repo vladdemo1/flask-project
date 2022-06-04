@@ -96,9 +96,9 @@ def register():
 
         password_hash = generate_password_hash(user_password)
 
-        status_code, message = RouteController().add_user_to_database(name=user_name,
-                                                                      email=user_email,
-                                                                      password=password_hash)
+        message = RouteController().add_user_to_database(name=user_name,
+                                                         email=user_email,
+                                                         password=password_hash)
 
         user_login = RouteController().get_user_login(name=user_name,
                                                       password=password_hash,
@@ -127,7 +127,7 @@ def films():
     """
     if request.method == 'POST':
         data = request.get_json()
-        search_pattern = data['number_page']
+        search_pattern = data['search_pattern']
         number_page = data['number_page']
 
         if not search_pattern:
