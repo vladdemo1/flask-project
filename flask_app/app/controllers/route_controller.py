@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from app.main.database_model import DatabaseModel
 from app.models.user import User
 from app.models.user_login import UserLogin
+from app.models.film import Film
 
 
 class RouteController:
@@ -46,26 +47,116 @@ class RouteController:
 
     @staticmethod
     def get_id_user(username: str) -> int:
+        """
+        Get id user by username from database
+        """
         return DatabaseModel().get_id_user_by_name(username)
 
     @staticmethod
     def get_user_by_id(user_id: int) -> User:
+        """
+        Get user from database by id
+        """
         return DatabaseModel().get_user_by_id(user_id)
 
     @staticmethod
+    def get_user_admin_status(username: str) -> bool:
+        """
+        Get user admin status from database
+        True - real admin
+        """
+        return DatabaseModel().get_user_admin_status(username)
+
+    @staticmethod
     def logout_user():
+        """
+        Logout current user from flask-login
+        """
         logout_user()
 
     @staticmethod
     def add_user_to_database(name: str, email: str, password: str):
+        """
+        Add current user to database
+        """
         try:
             new_user = User(email=email, name=name, password=password)
             new_user.save_to_db()
         except IntegrityError:
-            return 400, {'Message': 'User is exists'}
+            return {'Message': 'User is exists'}
 
-        return 200, new_user.json()
+        return new_user.json()
 
     @staticmethod
-    def get_user_login(name: str, password: str, user_id: int):
+    def get_user_login(name: str, password: str, user_id: int) -> UserLogin:
+        """
+        Get current UserLogin
+        """
         return UserLogin(username=name, password=password, user_id=user_id)
+
+    @staticmethod
+    def get_genres_id(genres: list) -> list:
+        """
+        Get list genres id by list genres names from database
+        """
+        genres_id = []
+        for genre in genres:
+            genre = DatabaseModel().get_genre_by_name(genre)
+            if genre is None:
+                genre = DatabaseModel().get_genre_by_name("Unknown")
+            genres_id.append(genre.id)
+
+        return genres_id
+
+    @staticmethod
+    def get_film_director_id(director_name: str) -> int:
+        """
+        Get current director id by his name
+        """
+        current_director = DatabaseModel().get_director_by_name(director_name=director_name)
+        if current_director is None:
+            current_director = DatabaseModel().get_director_by_name("Unknown")
+        return current_director.id
+
+    @staticmethod
+    def add_film_to_database(name, date, rating, poster, description, director_id, user_id) -> int:
+        """
+        Add film to database and return film id
+        """
+        new_film = Film(name=name, date=date, rating=rating, poster=poster,
+                        description=description, director_id=director_id,
+                        user_id=user_id)
+        new_film.save_to_db()
+        return new_film.id
+
+    @staticmethod
+    def add_relation_film_genre(film_id: int, genre_id: int):
+        """
+        Add all custom relations with current film and genres
+        """
+        DatabaseModel().add_to_relation_film_genre(film_id=film_id, genre_id=genre_id)
+
+    @staticmethod
+    def get_user_id_by_film(film_name: str) -> int:
+        """
+        Get id user by film name from database
+        """
+        film = DatabaseModel().get_film_by_name(film_name)
+        if film is None:
+            return False
+        return film.user_id
+
+    @staticmethod
+    def delete_film_by_name(film_name: str):
+        """
+        Delete film from database by film name
+        """
+        film_to_delete = DatabaseModel().get_film_by_name(film_name)
+        film_to_delete.delete_from_db()
+
+    @staticmethod
+    def update_film(film_name: str, **kwargs):
+        """
+        Update film by film name
+        """
+        DatabaseModel().update_film(film_name, **kwargs)
