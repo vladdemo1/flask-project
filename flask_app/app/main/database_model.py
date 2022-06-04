@@ -91,7 +91,58 @@ class DatabaseModel:
         """
         Update film by film name
         """
-        stmt = update(Film).where(Film.name == film_name).values(**kwargs).\
+        stmt = update(Film).where(Film.name == film_name).values(**kwargs). \
             execution_options(synchronize_session="fetch")
         db.session.execute(stmt)
         db.session.commit()
+
+    @staticmethod
+    def get_films_sort_rating(page_number: int, count_per_page: int):
+        """
+        Get films with paginate sort desc by rating
+        """
+        films = Film.query.order_by(Film.rating.desc())
+        return films.paginate(page=page_number, per_page=count_per_page).items
+
+    @staticmethod
+    def get_films_sort_date(page_number: int, count_per_page: int):
+        """
+        Get films with paginate sort desc by date
+        """
+        films = Film.query.order_by(Film.date.desc())
+        return films.paginate(page=page_number, per_page=count_per_page).items
+
+    @staticmethod
+    def get_films_sort_multi(page_number: int, count_per_page: int):
+        """
+        Get films with paginate sort by rating & date
+        """
+        films = Film.query.order_by(Film.rating.desc(), Film.date.desc())
+        return films.paginate(page=page_number, per_page=count_per_page).items
+
+    @staticmethod
+    def get_films_filter_genre(genre: str, page_number: int, count_per_page: int):
+        """
+        Get films with paginate filter by genre
+        """
+        films = Film.query.filter(Film.genre_id).filter(Genre.genre == genre)
+
+        return films.paginate(page=page_number, per_page=count_per_page).items
+
+    @staticmethod
+    def get_films_in_date_interval(left_date, right_date, page_number: int, count_per_page: int):
+        """
+        Get films with paginate in date interval
+        """
+        films = Film.query.filter(Film.date > left_date).filter(Film.date < right_date)
+        return films.paginate(page=page_number, per_page=count_per_page).items
+
+    @staticmethod
+    def get_films_filter_director(director_name: str, page_number: int, count_per_page: int):
+        """
+        Get films with paginate filter by director
+        """
+        films = db.session.query(Film, Director
+                                 ).filter(Film.director_id == Director.id
+                                          ).filter(Director.name == director_name)
+        return films.paginate(page=page_number, per_page=count_per_page).items

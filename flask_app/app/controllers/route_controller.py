@@ -160,3 +160,48 @@ class RouteController:
         Update film by film name
         """
         DatabaseModel().update_film(film_name, **kwargs)
+
+    @staticmethod
+    def get_films_sort_rating(number_page: int, count_per_page=10):
+        """
+        Get films with paginate from database by rating desc sort
+        """
+        return DatabaseModel().get_films_sort_rating(page_number=number_page, count_per_page=count_per_page)
+
+    @staticmethod
+    def get_films_sort_date(number_page: int, count_per_page=10):
+        """
+        Get films with paginate from database by date desc sort
+        """
+        return DatabaseModel().get_films_sort_date(page_number=number_page, count_per_page=count_per_page)
+
+    @staticmethod
+    def get_films_sort_multi(number_page: int, count_per_page=10):
+        """
+        Get films with paginate from database by rating & date desc sort
+        """
+        return DatabaseModel().get_films_sort_multi(page_number=number_page, count_per_page=count_per_page)
+
+    @staticmethod
+    def get_films_filter_genres(genre: str, number_page: int, count_per_page=10):
+        """
+        Get films with paginate from database filer by genre
+        """
+        return DatabaseModel().get_films_filter_genre(genre=genre, page_number=number_page,
+                                                      count_per_page=count_per_page)
+
+    @staticmethod
+    def get_films_in_date_interval(left_date, right_date, number_page: int, count_per_page=10):
+        """
+        Get films with paginate in date interval
+        """
+        return DatabaseModel().get_films_in_date_interval(left_date=left_date, right_date=right_date,
+                                                          page_number=number_page, count_per_page=count_per_page)
+
+    @staticmethod
+    def get_films_filter_director(director: str, number_page: int, count_per_page=10):
+        """
+        Get films with paginate filter by director
+        """
+        return DatabaseModel().get_films_filter_director(director_name=director, page_number=number_page,
+                                                         count_per_page=count_per_page)

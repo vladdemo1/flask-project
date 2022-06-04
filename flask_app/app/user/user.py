@@ -112,3 +112,59 @@ def edit_film():
         RouteController().update_film(film_name, **data)
 
         return jsonify({"message": f"Film {film_name} edit"})
+
+
+@user.route("/sort", methods=['GET', 'POST'])
+def sorting_film():
+    """
+    Sorting film by rating or date
+    """
+    if request.method == 'POST':
+        title = 'Films'
+
+        data = request.get_json()
+        number_page = data['number_page']
+
+        if not data['date'] and data['rating']:
+            films_sort_by_rating = RouteController().get_films_sort_rating(number_page=number_page)
+            return jsonify({f'{title}': f'{films_sort_by_rating}'})
+
+        if not data['rating'] and data['date']:
+            films_sort_by_date = RouteController().get_films_sort_date(number_page=number_page)
+            return jsonify({f'{title}': f'{films_sort_by_date}'})
+
+        films_multi_sort = RouteController().get_films_sort_multi(number_page=number_page)
+        return jsonify({f'{title}': f'{films_multi_sort}'})
+
+
+@user.route("/filter", methods=['GET', 'POST'])
+def filter_film():
+    """
+    Filter films by genre, dates or director
+    """
+    if request.method == "POST":
+        title = 'Films'
+
+        data = request.get_json()
+        number_page = data['number_page']
+        genre = data['genre']
+        left_date = data['left_date']
+        right_date = data['right_date']
+        director = data['director']
+
+        if genre:
+            films_filter_genres = RouteController().get_films_filter_genres(genre=genre, number_page=number_page)
+            return jsonify({f'{title}': f'{films_filter_genres}'})
+
+        if left_date and right_date:
+            films_in_interval = RouteController().get_films_in_date_interval(left_date=left_date,
+                                                                             right_date=right_date,
+                                                                             number_page=number_page)
+            return jsonify({f'{title}': f'{films_in_interval}'})
+
+        if director:
+            films_filter_director = RouteController().get_films_filter_director(director=director,
+                                                                                number_page=number_page)
+            return jsonify({f'{title}': f'{films_filter_director}'})
+
+        return jsonify({'Message': 'Incorrect data or empty fields'})
