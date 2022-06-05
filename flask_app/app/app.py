@@ -2,8 +2,6 @@
 This mod contains main init about app
 """
 
-import logging
-
 from flask import Flask
 from flask_login import LoginManager
 
@@ -20,7 +18,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config.SQLALCHEMY_TRACK_MODIFICAT
 
 app.register_blueprint(user, url_prefix='/films')
 
-console = logging.getLogger('console')
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 users_repository = UsersRepository()

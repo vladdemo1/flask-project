@@ -2,7 +2,7 @@
 This mod contains main routes in app
 """
 
-from flask_login import login_required, login_user
+from flask_login import login_required, login_user, current_user
 from flask import request, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -10,6 +10,7 @@ from app.app import app
 from app.app import users_repository
 
 from app.controllers.route_controller import RouteController
+from app.logging.logs import MainLogger
 
 
 @app.route("/ping", methods=['POST'])
@@ -54,6 +55,9 @@ def login():
 
         users_repository.save_user(user_login)
         login_user(user_login)
+
+        del data["password"]
+        MainLogger(user=user_name, data=data, route='/login', message="User log in")
 
         return jsonify({'Message': 'User successfully logged in'})
 
@@ -106,6 +110,10 @@ def register():
         users_repository.save_user(user_login)
         login_user(user_login)
 
+        del data["password"]
+        del data["password_too"]
+        MainLogger(user=user_name, data=data, route='/register', message="User registered")
+
         return jsonify(message)
 
 
@@ -116,7 +124,9 @@ def logout():
     Log out from flask-login
     """
     if request.method == "POST":
+        username = current_user.username
         RouteController().logout_user()
+        MainLogger(user=username, data=request.get_json(), route='/logout', message="User log out")
         return jsonify({'Message': 'Logout completed'})
 
 
@@ -132,9 +142,11 @@ def films():
 
         if not search_pattern:
             all_films = RouteController().get_all_films(page_number=number_page)
+            MainLogger(user=current_user.username, data=data, route='/films', message="Show films without pattern")
             return jsonify({'Films': f'{all_films}'})
 
         films_with_paginate = RouteController().film_paginate(page=number_page, search_pattern=search_pattern)
+        MainLogger(user=current_user.username, data=data, route='/films', message="Show films with pattern")
         return jsonify({'Films': f'{films_with_paginate}'})
 
     first_films = RouteController().get_all_films(page_number=1)
