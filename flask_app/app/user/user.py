@@ -3,9 +3,10 @@ This mod contains blueprint about route 'films' when user can make something wit
 """
 
 from flask import Blueprint, request, jsonify
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from app.controllers.route_controller import RouteController
+from app.logging.logs import MainLogger
 
 user = Blueprint(name='films', import_name=__name__)
 BASE_URL = '/films'
@@ -54,6 +55,7 @@ def add_film():
         for genre_id in film_genres_id:
             RouteController().add_relation_film_genre(film_id=film_id, genre_id=genre_id)
 
+        MainLogger(user=current_user.username, data=data, route=BASE_URL + '/add', message="Add film by user")
         return jsonify({"Message": f"Film {film_name} added!"})
 
 
@@ -81,6 +83,7 @@ def delete_film():
 
         RouteController().delete_film_by_name(film_name)
 
+        MainLogger(user=current_user.username, data=data, route=BASE_URL + '/delete', message="Film deleted by user")
         return jsonify({"message": f"Film {film_name} deleted"})
 
 
@@ -111,6 +114,7 @@ def edit_film():
 
         RouteController().update_film(film_name, **data)
 
+        MainLogger(user=current_user.username, data=data, route=BASE_URL + '/edit', message="Film edited by user")
         return jsonify({"message": f"Film {film_name} edit"})
 
 
