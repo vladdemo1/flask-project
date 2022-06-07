@@ -4,8 +4,12 @@ This mod contains main class about logging
 
 from flask import current_app
 from werkzeug.local import LocalProxy
+import logging
 
 logger = LocalProxy(lambda: current_app.logger)
+
+logging.basicConfig(filename='error.log', level=logging.INFO, filemode='a')
+logger_file = logging.getLogger()
 
 
 class MainLogger:
@@ -24,13 +28,25 @@ class MainLogger:
         _status = f"status = {status}"
         _message = f"message = {message}"
 
-        _text = self._get_message(_user, _method, _data, _route, _status, _message)
+        _text = self.get_message(_user, _method, _data, _route, _status, _message)
 
         logger.info(_text)
 
     @staticmethod
-    def _get_message(*args):
+    def get_message(*args):
         """
         Get text for log
         """
         return [val for val in args]
+
+
+class FileLogger:
+    """
+    Class about logging to file
+    """
+
+    def __init__(self, user, message=None):
+        _user = f'user = {user}'
+        _message = message
+        _text = MainLogger.get_message(_user, _message)
+        logger_file.info(_text)

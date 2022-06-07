@@ -6,7 +6,7 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 
 from app.controllers.route_controller import RouteController
-from app.logging.logs import MainLogger
+from app.logging.logs import MainLogger, FileLogger
 
 user = Blueprint(name='films', import_name=__name__)
 BASE_URL = '/films'
@@ -33,20 +33,28 @@ def add_film():
         film_poster: str = data["film_poster"]
 
         if not film_name:
-            return jsonify({"Message": "Incorrect input film name"})
+            message = {"Message": "Incorrect input film name"}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         if len(film_genres) < 1:
-            return jsonify({"Message": "Field about film genres is empty"})
+            message = {"Message": "Field about film genres is empty"}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         film_genres_id = RouteController().get_genres_id(genres=film_genres)
 
         film_director_id = RouteController().get_film_director_id(director_name=film_director)
 
         if film_rating < 0 or film_rating > 10:
-            return jsonify({"Message": "Incorrect rating value"})
+            message = {"Message": "Incorrect rating value"}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         if not film_poster:
-            return jsonify({"Message": "Field poster is empty"})
+            message = {"Message": "Field poster is empty"}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         film_id = RouteController().add_film_to_database(name=film_name, date=film_date, rating=film_rating,
                                                          poster=film_poster, description=film_description,
@@ -76,10 +84,14 @@ def delete_film():
         film_user_id = RouteController().get_user_id_by_film(film_name=film_name)
 
         if not film_user_id:
-            return jsonify({"message": "Film not found"})
+            message = {"message": "Film not found"}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         if user_id != film_user_id and not admin_status:
-            return jsonify({"message": "This user cant delete this film"})
+            message = {"message": "This user cant delete this film"}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         RouteController().delete_film_by_name(film_name)
 
@@ -104,10 +116,14 @@ def edit_film():
         film_user_id = RouteController().get_user_id_by_film(film_name=film_name)
 
         if not film_user_id:
-            return jsonify({"message": "Film not found"})
+            message = {"message": "Film not found"}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         if user_id != film_user_id and not admin_status:
-            return jsonify({"message": "This user cant edit this film"})
+            message = {"message": "This user cant edit this film"}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         if data['director_id']:
             data['director_id'] = RouteController().get_film_director_id(director_name=data['director_id'])

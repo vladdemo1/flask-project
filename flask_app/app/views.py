@@ -10,7 +10,7 @@ from app.app import app
 from app.app import users_repository
 
 from app.controllers.route_controller import RouteController
-from app.logging.logs import MainLogger
+from app.logging.logs import MainLogger, FileLogger
 
 
 @app.route("/ping", methods=['POST'])
@@ -34,18 +34,24 @@ def login():
         user_password = data["password"]
 
         if not user_name or not user_email or not user_password:
-            return jsonify({'Message': 'User not log in'})
+            message = {'Message': 'User not log in'}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         hash_password = RouteController().get_user_password_hash(user_name=user_name)
         check_passwords = check_password_hash(hash_password, user_password)
 
         if not check_passwords:
-            return jsonify({'Message': 'Password is not correct'})
+            message = {'Message': 'Password is not correct'}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         user_id = RouteController().get_id_user(username=user_name)
 
         if user_id is None:
-            return jsonify({'Message': 'User is not exists in database'})
+            message = {'Message': 'User is not exists in database'}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         user_from_database = RouteController().get_user_by_id(user_id)
 
@@ -87,16 +93,24 @@ def register():
         user_password_too: str = data["password_too"]
 
         if not user_name:
-            return jsonify({'Message': 'Name not field or invalid user name'})
+            message = {'Message': 'Name not field or invalid user name'}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         if not user_email:
-            return jsonify({'Message': 'Email not field or invalid email'})
+            message = {'Message': 'Email not field or invalid email'}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         if not user_password or not user_password_too:
-            return jsonify({'Message': 'Password not field'})
+            message = {'Message': 'Password not field'}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         if user_password != user_password_too:
-            return jsonify({'Message': 'Passwords are not equal'})
+            message = {'Message': 'Passwords are not equal'}
+            FileLogger(user_name, message)
+            return jsonify(message), 400
 
         password_hash = generate_password_hash(user_password)
 
@@ -151,10 +165,3 @@ def films():
 
     first_films = RouteController().get_all_films(page_number=1)
     return jsonify({'Films': f'{first_films}'})
-
-
-@app.route("/postman", methods=['GET', 'POST'])
-def postman():
-    if request.method == "POST":
-        data = request.get_json()
-        return jsonify({'Your name:': f'{data}'})
