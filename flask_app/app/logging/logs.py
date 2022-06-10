@@ -17,7 +17,7 @@ class MainLogger:
     Class about logging in app
     """
 
-    def __init__(self, user, method='POST', data=None, route=None, status=200, message=None):
+    def __init__(self, user=None, method='POST', data=None, route=None, status=200, message=None):
         """
         Make log with parameters
         """

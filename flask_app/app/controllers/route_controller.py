@@ -36,7 +36,10 @@ class RouteController:
         """
         Get user's password hash
         """
-        return User.find_by_name(user_name).password
+        current_user = User.find_by_name(user_name)
+        if current_user is None:
+            return False
+        return current_user.password
 
     @staticmethod
     def get_name_user_login():
@@ -101,7 +104,7 @@ class RouteController:
         """
         genres_id = []
         for genre in genres:
-            genre = DatabaseModel().get_genre_by_name(genre)
+            genre = DatabaseModel().get_genre_by_name(genre['genre'])
             if genre is None:
                 genre = DatabaseModel().get_genre_by_name("Unknown")
             genres_id.append(genre.id)

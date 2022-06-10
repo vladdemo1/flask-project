@@ -4,19 +4,18 @@ This mod contains main init about app
 
 from flask import Flask
 from flask_login import LoginManager
+from flask_restx import Api, Resource, fields
 
 from app.main.database import db, migrate
 from app import config
 from app.models.user_login import UsersRepository
-from app.user.user import user
-
 
 app = Flask(__name__)
 app.secret_key = config.APP_SECRET_KEY
 app.config['SQLALCHEMY_DATABASE_URI'] = config.DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = config.SQLALCHEMY_TRACK_MODIFICATIONS
 
-app.register_blueprint(user, url_prefix='/films')
+api = Api(app, version=config.API_VERSION, title=config.API_TITLE, description=config.API_DESCRIPTION)
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
