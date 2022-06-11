@@ -319,17 +319,17 @@ class FilmsFilter(Resource):
         right_date = data['right_date']
         director = data['director']
 
-        if genre:
+        if genre and not left_date and not right_date and not director:
             films_filter_genres = RouteController().get_films_filter_genres(genre=genre, number_page=number_page)
             return jsonify({f'{title}': f'{films_filter_genres}'})
 
-        if left_date and right_date:
+        if left_date and right_date and not genre and not director:
             films_in_interval = RouteController().get_films_in_date_interval(left_date=left_date,
                                                                              right_date=right_date,
                                                                              number_page=number_page)
             return jsonify({f'{title}': f'{films_in_interval}'})
 
-        if director:
+        if director and not genre and not left_date and not right_date:
             films_filter_director = RouteController().get_films_filter_director(director=director,
                                                                                 number_page=number_page)
             return jsonify({f'{title}': f'{films_filter_director}'})
