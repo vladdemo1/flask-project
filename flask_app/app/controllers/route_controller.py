@@ -104,7 +104,7 @@ class RouteController:
         """
         genres_id = []
         for genre in genres:
-            genre = DatabaseModel().get_genre_by_name(genre['genre'])
+            genre = DatabaseModel().get_genre_by_name(genre)
             if genre is None:
                 genre = DatabaseModel().get_genre_by_name("Unknown")
             genres_id.append(genre.id)
