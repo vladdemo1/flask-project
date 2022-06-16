@@ -2,12 +2,14 @@
 This mod contains main tests about current api
 """
 
+from os import getenv
 import random
-
+from dotenv import load_dotenv
 import pytest
 import requests
 
-BASE_URL = 'http://127.0.0.1:5000'
+load_dotenv()
+BASE_URL = getenv('BASE_URL')
 
 
 @pytest.fixture
