@@ -214,7 +214,7 @@ class RouteController:
         return DatabaseModel().get_films_filter_director(director_name=director, page_number=number_page,
                                                          count_per_page=count_per_page)
 
-    def login(self, data: dict) -> dict:
+    def login(self, data: dict) -> tuple:
         """
         Func with logic about route login.
         Login current user
@@ -226,17 +226,17 @@ class RouteController:
         if not user_name or not user_email or not user_password:
             message = {'Message': 'User not log in'}
             FileLogger(user_name, message)
-            return message
+            return message, 401
 
         hash_password = self.get_user_password_hash(user_name=user_name)
         if hash_password is None:
-            return {'Message': 'User is not exists'}
+            return {'Message': 'User is not exists'}, 401
         check_passwords = check_password_hash(hash_password, user_password)
 
         if not check_passwords:
             message = {'Message': 'Password is not correct'}
             FileLogger(user_name, message)
-            return message
+            return message, 403
 
         user_id = self.get_id_user(username=user_name)
         user_from_database = self.get_user_by_id(user_id)
@@ -251,9 +251,9 @@ class RouteController:
         del data["password"]
         MainLogger(user=user_name, data=data, route='/login', message="User log in")
 
-        return {'Message': 'User successfully logged in'}
+        return {'Message': 'User successfully logged in'}, 200
 
-    def register(self, data: dict) -> dict:
+    def register(self, data: dict) -> tuple:
         """
         Func with logic about route register
         Registered new user
@@ -266,22 +266,22 @@ class RouteController:
         if not user_name:
             message = {'Message': 'Name not field or invalid user name'}
             FileLogger(user_name, message)
-            return message
+            return message, 401
 
         if not user_email:
             message = {'Message': 'Email not field or invalid email'}
             FileLogger(user_name, message)
-            return message
+            return message, 401
 
         if not user_password or not user_password_too:
             message = {'Message': 'Password not field'}
             FileLogger(user_name, message)
-            return message
+            return message, 401
 
         if user_password != user_password_too:
             message = {'Message': 'Passwords are not equal'}
             FileLogger(user_name, message)
-            return message
+            return message, 403
 
         password_hash = generate_password_hash(user_password)
 
@@ -298,9 +298,9 @@ class RouteController:
         del data["password"]
         del data["password_too"]
         MainLogger(user=user_name, data=data, route='/register', message="User registered")
-        return message
+        return message, 200
 
-    def films(self, data: dict) -> dict:
+    def films(self, data: dict) -> tuple:
         """
         Func with logic about route films
         Get films by pattern and with paginate
@@ -311,13 +311,13 @@ class RouteController:
         if not search_pattern:
             all_films = self.get_all_films(page_number=number_page)
             MainLogger(data=data, route='/films', message="Show films without pattern")
-            return {'Films': f'{all_films}'}
+            return {'Films': f'{all_films}'}, 200
 
         films_with_paginate = self.film_paginate(page=number_page, search_pattern=search_pattern)
         MainLogger(data=data, route='/films', message="Show films with pattern")
-        return {'Films': f'{films_with_paginate}'}
+        return {'Films': f'{films_with_paginate}'}, 200
 
-    def film_add(self, data: dict) -> dict:
+    def film_add(self, data: dict) -> tuple:
         """
         Func with logic about route film_add
         Add current film to database
@@ -336,12 +336,12 @@ class RouteController:
         if not film_name:
             message = {"Message": "Incorrect input film name"}
             FileLogger(user_name, message)
-            return message
+            return message, 400
 
         if len(film_genres) < 1:
             message = {"Message": "Field about film genres is empty"}
             FileLogger(user_name, message)
-            return message
+            return message, 406
 
         film_genres_id = self.get_genres_id(genres=film_genres)
 
@@ -350,12 +350,12 @@ class RouteController:
         if film_rating < 0 or film_rating > 10:
             message = {"Message": "Incorrect rating value"}
             FileLogger(user_name, message)
-            return message
+            return message, 406
 
         if not film_poster:
             message = {"Message": "Field poster is empty"}
             FileLogger(user_name, message)
-            return message
+            return message, 406
 
         film_id = self.add_film_to_database(name=film_name, date=film_date, rating=film_rating,
                                             poster=film_poster, description=film_description,
@@ -365,9 +365,9 @@ class RouteController:
             self.add_relation_film_genre(film_id=film_id, genre_id=genre_id)
 
         MainLogger(user=current_user.username, data=data, route='/films/add', message="Add film by user")
-        return {"Message": f"Film {film_name} added!"}
+        return {"Message": f"Film {film_name} added!"}, 200
 
-    def film_delete(self, data: dict) -> dict:
+    def film_delete(self, data: dict) -> tuple:
         """
         Func with logic about route film_add
         Delete current film from database
@@ -382,19 +382,19 @@ class RouteController:
         if not film_user_id:
             message = {"message": "Film not found"}
             FileLogger(user_name, message)
-            return message
+            return message, 204
 
         if user_id != film_user_id and not admin_status:
             message = {"message": "This user cant delete this film"}
             FileLogger(user_name, message)
-            return message
+            return message, 403
 
         self.delete_film_by_name(film_name)
 
         MainLogger(user=current_user.username, data=data, route='/films/delete', message="Film deleted by user")
-        return {"message": f"Film {film_name} deleted"}
+        return {"message": f"Film {film_name} deleted"}, 200
 
-    def film_edit(self, data: dict) -> dict:
+    def film_edit(self, data: dict) -> tuple:
         """
         Func with logic about route film_edit
         Edit film by input values
@@ -409,12 +409,12 @@ class RouteController:
         if not film_user_id:
             message = {"message": "Film not found"}
             FileLogger(user_name, message)
-            return message
+            return message, 204
 
         if user_id != film_user_id and not admin_status:
             message = {"message": "This user cant edit this film"}
             FileLogger(user_name, message)
-            return message
+            return message, 403
 
         if data['director_id']:
             data['director_id'] = self.get_film_director_id(director_name=data['director_id'])
@@ -422,9 +422,9 @@ class RouteController:
         self.update_film(film_name, **data)
 
         MainLogger(user=current_user.username, data=data, route='/films/edit', message="Film edited by user")
-        return {"message": f"Film {film_name} edit"}
+        return {"message": f"Film {film_name} edit"}, 200
 
-    def film_sort(self, data: dict) -> dict:
+    def film_sort(self, data: dict) -> tuple:
         """
         Func with logic about rout film_sort
         Sort films by fields
@@ -434,16 +434,16 @@ class RouteController:
 
         if not data['date'] and data['rating']:
             films_sort_by_rating = self.get_films_sort_rating(number_page=number_page)
-            return {f'{title}': f'{films_sort_by_rating}'}
+            return {f'{title}': f'{films_sort_by_rating}'}, 200
 
         if not data['rating'] and data['date']:
             films_sort_by_date = self.get_films_sort_date(number_page=number_page)
-            return {f'{title}': f'{films_sort_by_date}'}
+            return {f'{title}': f'{films_sort_by_date}'}, 200
 
         films_multi_sort = self.get_films_sort_multi(number_page=number_page)
-        return {f'{title}': f'{films_multi_sort}'}
+        return {f'{title}': f'{films_multi_sort}'}, 200
 
-    def film_filter(self, data: dict) -> dict:
+    def film_filter(self, data: dict) -> tuple:
         """
         Func with logic about route film_filter
         Filter films by fields
@@ -457,17 +457,17 @@ class RouteController:
 
         if genre and not left_date and not right_date and not director:
             films_filter_genres = self.get_films_filter_genres(genre=genre, number_page=number_page)
-            return {f'{title}': f'{films_filter_genres}'}
+            return {f'{title}': f'{films_filter_genres}'}, 200
 
         if left_date and right_date and not genre and not director:
             films_in_interval = self.get_films_in_date_interval(left_date=left_date,
                                                                 right_date=right_date,
                                                                 number_page=number_page)
-            return {f'{title}': f'{films_in_interval}'}
+            return {f'{title}': f'{films_in_interval}'}, 200
 
         if director and not genre and not left_date and not right_date:
             films_filter_director = self.get_films_filter_director(director=director,
                                                                    number_page=number_page)
-            return {f'{title}': f'{films_filter_director}'}
+            return {f'{title}': f'{films_filter_director}'}, 200
 
-        return {'Message': 'Incorrect data or empty fields'}
+        return {'Message': 'Incorrect data or empty fields'}, 200

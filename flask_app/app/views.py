@@ -3,7 +3,7 @@ This mod contains main routes in app
 """
 
 from flask_login import login_required, current_user
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 
 from app.app import api, Resource
 from app.controllers.route_controller import RouteController
@@ -20,7 +20,8 @@ class Login(Resource):
         """
         data = request.get_json(force=True)
 
-        return jsonify(RouteController().login(data))
+        answer, code = RouteController().login(data)
+        return make_response(jsonify(answer), code)
 
 
 @api.route('/register')
@@ -33,7 +34,8 @@ class Register(Resource):
         """
         data = request.get_json(force=True)
 
-        return jsonify(RouteController().register(data))
+        answer, code = RouteController().register(data)
+        return make_response(jsonify(answer), code)
 
 
 @api.route("/logout")
@@ -48,7 +50,8 @@ class LogOut(Resource):
         username = current_user.username
         data = request.get_json(force=True)
 
-        return jsonify(RouteController().logout_user(username, data))
+        answer, code = RouteController().logout_user(username, data)
+        return make_response(jsonify(answer), code)
 
 
 @api.route("/films")
@@ -61,7 +64,8 @@ class Films(Resource):
         """
         data = request.get_json(force=True)
 
-        return jsonify(RouteController().films(data))
+        answer, code = RouteController().films(data)
+        return make_response(jsonify(answer), code)
 
 
 @api.route("/films/add")
@@ -75,7 +79,8 @@ class FilmsAdd(Resource):
         """
         data = request.get_json(force=True)
 
-        return jsonify(RouteController().film_add(data))
+        answer, code = RouteController().film_add(data)
+        return make_response(jsonify(answer), code)
 
 
 @api.route("/films/delete")
@@ -89,7 +94,8 @@ class FilmsDelete(Resource):
         """
         data = request.get_json(force=True)
 
-        return jsonify(RouteController().film_delete(data))
+        answer, code = RouteController().film_delete(data)
+        return make_response(jsonify(answer), code)
 
 
 @api.route("/films/edit")
@@ -103,7 +109,8 @@ class FilmsEdit(Resource):
         """
         data = request.get_json(force=True)
 
-        return jsonify(RouteController().film_edit(data))
+        answer, code = RouteController().film_edit(data)
+        return make_response(jsonify(answer), code)
 
 
 @api.route("/films/sort")
@@ -116,7 +123,8 @@ class FilmsSort(Resource):
         """
         data = request.get_json(force=True)
 
-        return jsonify(RouteController().film_sort(data))
+        answer, code = RouteController().film_sort(data)
+        return make_response(jsonify(answer), code)
 
 
 @api.route("/films/filter")
@@ -129,4 +137,5 @@ class FilmsFilter(Resource):
         """
         data = request.get_json(force=True)
 
-        return jsonify(RouteController().film_filter(data))
+        answer, code = RouteController().film_filter(data)
+        return make_response(jsonify(answer), code)
